@@ -15,6 +15,9 @@ interface KeywordMatchResult {
 const openrouterApiKey = process.env.OPENROUTER_API_KEY;
 const apiUrl = "https://openrouter.ai/api/v1/chat/completions";
 
+/** OpenRouter 模型 ID，可通过环境变量 AI_MODEL 覆盖 */
+const AI_MODEL = process.env.AI_MODEL?.trim() || "deepseek/deepseek-v3.2";
+
 export const aiVerificationService = {
   /**
    * 验证热点内容的真实性并生成标签
@@ -56,7 +59,7 @@ export const aiVerificationService = {
       const response = await axios.post(
         apiUrl,
         {
-          model: process.env.AI_MODEL || "deepseek/deepseek-v3.2",
+          model: AI_MODEL,
           messages: [
             {
               role: "user",
@@ -128,7 +131,7 @@ export const aiVerificationService = {
       const response = await axios.post(
         apiUrl,
         {
-          model: process.env.AI_MODEL || "deepseek/deepseek-v3.2",
+          model: AI_MODEL,
           messages: [
             {
               role: "user",

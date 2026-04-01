@@ -8,13 +8,23 @@
 
 html {
   scroll-behavior: smooth;
+  width: 100%;
+  max-width: 100%;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
 }
 
 body {
   font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  @apply bg-slate-950 text-slate-100 antialiased;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  @apply bg-[#121214] text-zinc-100 antialiased;
 }
 
 .font-mono-nums {
