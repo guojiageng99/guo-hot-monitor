@@ -25,6 +25,9 @@ function App() {
   const [filter, setFilter] = useState<string>("all");
   const [isConnected, setIsConnected] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [collecting, setCollecting] = useState(false);
+  const [searchDraft, setSearchDraft] = useState("");
+  const [searchQ, setSearchQ] = useState("");
 
   // 初始化Socket.io连接
   useEffect(() => {
@@ -69,29 +72,60 @@ function App() {
     }
   };
 
-  // 获取热点
-  const fetchHotspots = async () => {
+  const loadHotspots = useCallback(async (q: string) => {
     try {
-      const res = await axios.get(`${API_BASE}/hotspots?limit=50`);
+      const params = new URLSearchParams({ limit: "50" });
+      if (q) params.set("q", q);
+      const res = await axios.get(`${API_BASE}/hotspots?${params.toString()}`);
       setHotspots(res.data);
     } catch (error) {
       console.error("获取热点失败:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setSearchQ(searchDraft.trim()), 350);
+    return () => window.clearTimeout(id);
+  }, [searchDraft]);
+
+  useEffect(() => {
+    void loadHotspots(searchQ);
+  }, [searchQ, loadHotspots]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([fetchKeywords(false), fetchHotspots()]);
+      await Promise.all([fetchKeywords(false), loadHotspots(searchQ)]);
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [searchQ, loadHotspots]);
 
-  // 初始化加载
+  const handleCollectNow = useCallback(async () => {
+    setCollecting(true);
+    try {
+      const res = await axios.post(`${API_BASE}/hotspots/collect`);
+      await loadHotspots(searchQ);
+      const d = res.data;
+      alert(
+        `采集完成：新入库 ${d.collected} 条，AI 处理 ${d.processed} 条，匹配通知 ${d.matchedNotifications} 条${d.errors ? `（${d.errors} 条处理出错）` : ""}`,
+      );
+    } catch (error: unknown) {
+      const ax = error as { response?: { status?: number; data?: { error?: string } } };
+      if (ax.response?.status === 409) {
+        alert(ax.response.data?.error ?? "采集进行中");
+      } else {
+        alert(ax.response?.data?.error ?? "采集失败，请查看控制台");
+        console.error(error);
+      }
+    } finally {
+      setCollecting(false);
+    }
+  }, [searchQ, loadHotspots]);
+
+  // 初始化加载关键词（热点由 searchQ effect 拉取）
   useEffect(() => {
-    fetchKeywords();
-    fetchHotspots();
+    void fetchKeywords();
   }, []);
 
   // 添加关键词
@@ -116,6 +150,23 @@ function App() {
       console.error("删除失败:", error);
     }
   };
+
+  const handleToggleKeywordStatus = async (
+    id: number,
+    status: "active" | "paused",
+  ) => {
+    try {
+      const res = await axios.put(`${API_BASE}/keywords/${id}`, { status });
+      setKeywords((prev) =>
+        prev.map((k) => (k.id === id ? res.data : k)),
+      );
+    } catch (error) {
+      console.error("更新关键词状态失败:", error);
+      alert("更新状态失败");
+    }
+  };
+
+  const activeKeywordCount = keywords.filter((k) => k.status === "active").length;
 
   const today = new Date().toISOString().slice(0, 10);
   const todayCount = hotspots.filter((h) => h.createdAt?.slice(0, 10) === today).length;
@@ -154,20 +205,33 @@ function App() {
               {isConnected ? "实时通道已连接" : "实时通道断开"}
             </div>
             <span className="hidden sm:inline text-slate-500 text-xs">
-              关键词 <span className="text-slate-300 font-mono-nums">{keywords.length}</span>
+              关键词{" "}
+              <span className="text-slate-300 font-mono-nums">
+                {activeKeywordCount}/{keywords.length}
+              </span>
               <span className="mx-1.5">·</span>
               热点 <span className="text-slate-300 font-mono-nums">{hotspots.length}</span>
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => void handleRefresh()}
-            disabled={refreshing || loading}
-            className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:pointer-events-none text-white text-sm font-semibold shadow-md shadow-violet-900/40 ring-1 ring-white/10 transition-colors"
-          >
-            {refreshing ? "刷新中…" : "刷新数据"}
-          </button>
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+            <button
+              type="button"
+              onClick={() => void handleCollectNow()}
+              disabled={collecting || refreshing || loading}
+              className="px-4 py-2 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-50 disabled:pointer-events-none text-white text-sm font-semibold shadow-md shadow-fuchsia-950/40 ring-1 ring-white/10 transition-colors"
+            >
+              {collecting ? "采集中…" : "立即检查"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleRefresh()}
+              disabled={refreshing || loading || collecting}
+              className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:pointer-events-none text-white text-sm font-semibold shadow-md shadow-violet-900/40 ring-1 ring-white/10 transition-colors"
+            >
+              {refreshing ? "刷新中…" : "刷新数据"}
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -178,7 +242,11 @@ function App() {
             { label: "总热点", value: hotspots.length, accent: "text-violet-300" },
             { label: "今日新增", value: todayCount, accent: "text-cyan-300" },
             { label: "紧急热点", value: urgentCount, accent: "text-rose-300" },
-            { label: "监控关键词", value: keywords.length, accent: "text-lime-300" },
+            {
+              label: "监控关键词",
+              value: activeKeywordCount,
+              accent: "text-lime-300",
+            },
           ].map((card) => (
             <div
               key={card.label}
@@ -201,6 +269,7 @@ function App() {
                 keywords={keywords}
                 onAdd={handleAddKeyword}
                 onDelete={handleDeleteKeyword}
+                onToggleStatus={handleToggleKeywordStatus}
                 loading={loading}
               />
 
@@ -220,6 +289,21 @@ function App() {
           </aside>
 
           <main className="xl:col-span-9">
+            <div className="mb-4">
+              <label className="sr-only" htmlFor="hotspot-search">
+                搜索热点
+              </label>
+              <input
+                id="hotspot-search"
+                type="search"
+                value={searchDraft}
+                onChange={(e) => setSearchDraft(e.target.value)}
+                placeholder="搜索标题或正文…"
+                className="w-full max-w-md px-4 py-2.5 rounded-xl bg-slate-950/50 border border-slate-600/50 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-violet-500/60 focus:ring-2 focus:ring-violet-500/20"
+                autoComplete="off"
+              />
+            </div>
+
             <div className="mb-5 flex flex-wrap gap-2">
               {(
                 [

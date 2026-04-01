@@ -3,14 +3,22 @@ import { prisma } from "../index";
 
 const router = Router();
 
-// 获取热点（支持分页和筛选）
+// 获取热点（支持分页、来源、标题/内容搜索 q）
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const { page = "1", limit = "20", source, keyword_id } = req.query;
+    const { page = "1", limit = "20", source, keyword_id, q } = req.query;
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
 
     const where: any = {};
     if (source) where.source = source as string;
+
+    const qStr = typeof q === "string" ? q.trim() : "";
+    if (qStr.length > 0) {
+      where.OR = [
+        { title: { contains: qStr } },
+        { content: { contains: qStr } },
+      ];
+    }
 
     let hotspots = await prisma.hotspot.findMany({
       where,
@@ -30,12 +38,42 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-// 获取单个热点
+// 手动触发一次采集（须放在 /:id 之前）
+router.post("/collect", async (_req: Request, res: Response) => {
+  try {
+    const { runCollectionPipeline } = await import(
+      "../tasks/collectionPipeline"
+    );
+    const result = await runCollectionPipeline();
+    if (result.skipped) {
+      return res.status(409).json({
+        error: "已有采集任务正在执行，请稍后再试",
+        skipped: true,
+      });
+    }
+    res.json({
+      ok: true,
+      collected: result.collected,
+      processed: result.processed,
+      matchedNotifications: result.matchedNotifications,
+      errors: result.errors,
+    });
+  } catch (error) {
+    console.error("手动采集失败:", error);
+    res.status(500).json({ error: "采集执行失败" });
+  }
+});
+
+// 获取单个热点（仅数字 id，避免与 /collect 等路径混淆）
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const numId = parseInt(id as string, 10);
+    if (Number.isNaN(numId)) {
+      return res.status(404).json({ error: "热点不存在" });
+    }
     const hotspot = await prisma.hotspot.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: numId },
     });
 
     if (!hotspot) {
@@ -73,10 +111,14 @@ router.post("/", async (req: Request, res: Response) => {
 router.put("/:id", async (req: Request, res: Response) => {
   try {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const numId = parseInt(id as string, 10);
+    if (Number.isNaN(numId)) {
+      return res.status(404).json({ error: "热点不存在" });
+    }
     const { verified, aiSummary, aiTags, relevanceScore } = req.body;
 
     const updated = await prisma.hotspot.update({
-      where: { id: parseInt(id) },
+      where: { id: numId },
       data: {
         ...(verified !== undefined && { verified }),
         ...(aiSummary && { aiSummary }),

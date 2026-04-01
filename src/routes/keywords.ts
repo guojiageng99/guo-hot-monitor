@@ -3,11 +3,11 @@ import { prisma } from "../index";
 
 const router = Router();
 
-// 获取所有关键词
+// 获取关键词（未删除的：active + paused，便于启用/停用管理）
 router.get("/", async (req: Request, res: Response) => {
   try {
     const keywords = await prisma.keyword.findMany({
-      where: { status: "active" },
+      where: { NOT: { status: "deleted" } },
       orderBy: { createdAt: "desc" },
     });
     res.json(keywords);
@@ -50,13 +50,24 @@ router.put("/:id", async (req: Request, res: Response) => {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const { keyword, description, categories, status } = req.body;
 
+    if (
+      status !== undefined &&
+      status !== "active" &&
+      status !== "paused" &&
+      status !== "deleted"
+    ) {
+      return res
+        .status(400)
+        .json({ error: "status 只能是 active、paused 或 deleted" });
+    }
+
     const updated = await prisma.keyword.update({
       where: { id: parseInt(id) },
       data: {
         ...(keyword && { keyword }),
         ...(description !== undefined && { description }),
         ...(categories && { categories: JSON.stringify(categories) }),
-        ...(status && { status }),
+        ...(status !== undefined && { status }),
       },
     });
 

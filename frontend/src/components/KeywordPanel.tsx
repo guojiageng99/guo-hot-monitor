@@ -13,6 +13,7 @@ interface KeywordPanelProps {
   keywords: Keyword[];
   onAdd: (keyword: string) => void;
   onDelete: (id: number) => void;
+  onToggleStatus: (id: number, status: "active" | "paused") => void;
   loading: boolean;
 }
 
@@ -20,10 +21,13 @@ const KeywordPanel: FC<KeywordPanelProps> = ({
   keywords,
   onAdd,
   onDelete,
+  onToggleStatus,
   loading,
 }) => {
   const [input, setInput] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+
+  const activeCount = keywords.filter((k) => k.status === "active").length;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +44,6 @@ const KeywordPanel: FC<KeywordPanelProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* 输入框 */}
       <div className="rounded-2xl p-6 border border-slate-700/50 bg-slate-900/40 backdrop-blur-md shadow-lg shadow-black/20">
         <div className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-violet-400/90">
           监控配置
@@ -68,7 +71,6 @@ const KeywordPanel: FC<KeywordPanelProps> = ({
         </form>
       </div>
 
-      {/* 关键词列表 */}
       <div className="rounded-2xl p-5 border border-slate-700/50 bg-slate-900/40 backdrop-blur-md max-h-96 overflow-y-auto shadow-lg shadow-black/15">
         <h3 className="text-sm font-semibold text-slate-200 mb-4">
           已添加 ({keywords.length})
@@ -81,42 +83,72 @@ const KeywordPanel: FC<KeywordPanelProps> = ({
           </div>
         ) : (
           <div className="space-y-2">
-            {keywords.map((kw) => (
-              <div
-                key={kw.id}
-                className="rounded-xl p-3 flex justify-between items-center bg-slate-800/40 hover:bg-slate-800/70 transition-colors border border-slate-600/30"
-              >
-                <div className="flex-1">
-                  <div className="font-medium text-violet-200">
-                    {kw.keyword}
+            {keywords.map((kw) => {
+              const isPaused = kw.status === "paused";
+              return (
+                <div
+                  key={kw.id}
+                  className={`rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 border transition-colors ${
+                    isPaused
+                      ? "bg-slate-900/50 border-slate-700/40 opacity-80"
+                      : "bg-slate-800/40 hover:bg-slate-800/70 border-slate-600/30"
+                  }`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-violet-200 truncate">
+                        {kw.keyword}
+                      </span>
+                      {isPaused && (
+                        <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-200 border border-amber-500/25 shrink-0">
+                          已暂停
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      {new Date(kw.createdAt).toLocaleDateString("zh-CN")}
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-400 mt-1">
-                    {new Date(kw.createdAt).toLocaleDateString("zh-CN")}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onToggleStatus(
+                          kw.id,
+                          isPaused ? "active" : "paused",
+                        )
+                      }
+                      className="px-2.5 py-1 text-xs font-medium rounded-lg border border-slate-600/50 text-slate-300 hover:bg-slate-700/50 transition-colors"
+                    >
+                      {isPaused ? "启用" : "暂停"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(kw.id)}
+                      className="px-2.5 py-1 text-xs font-medium bg-rose-500/15 hover:bg-rose-500/25 text-rose-200 rounded-lg border border-rose-500/25 transition-colors"
+                    >
+                      删除
+                    </button>
                   </div>
                 </div>
-                <button
-                  onClick={() => onDelete(kw.id)}
-                  className="ml-2 px-3 py-1 text-xs font-medium bg-rose-500/15 hover:bg-rose-500/25 text-rose-200 rounded-lg border border-rose-500/25 transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* 统计信息 */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl p-4 border border-slate-700/50 bg-slate-900/30 text-center">
           <div className="text-2xl font-semibold font-mono-nums text-cyan-300 tabular-nums">
-            {keywords.length}
+            {activeCount}
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">活跃关键词</div>
+          <div className="text-[11px] text-slate-500 mt-1">监控中</div>
         </div>
         <div className="rounded-xl p-4 border border-slate-700/50 bg-slate-900/30 text-center">
-          <div className="text-2xl font-semibold text-emerald-400">●</div>
-          <div className="text-[11px] text-slate-500 mt-1">监控运行中</div>
+          <div className="text-2xl font-semibold font-mono-nums text-slate-400 tabular-nums">
+            {keywords.length - activeCount}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-1">已暂停</div>
         </div>
       </div>
     </div>
