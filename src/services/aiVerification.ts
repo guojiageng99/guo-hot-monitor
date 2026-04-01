@@ -56,7 +56,7 @@ export const aiVerificationService = {
       const response = await axios.post(
         apiUrl,
         {
-          model: "gpt-3.5-turbo",
+          model: process.env.AI_MODEL || "deepseek/deepseek-v3.2",
           messages: [
             {
               role: "user",
@@ -128,7 +128,7 @@ export const aiVerificationService = {
       const response = await axios.post(
         apiUrl,
         {
-          model: "gpt-3.5-turbo",
+          model: process.env.AI_MODEL || "deepseek/deepseek-v3.2",
           messages: [
             {
               role: "user",

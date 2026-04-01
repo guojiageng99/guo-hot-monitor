@@ -1,0 +1,30 @@
+---
+description: guo-hot-monitor 本地开发与 Cursor（MCP / Skills）约定
+globs: "**/*"
+alwaysApply: false
+---
+
+# 项目速览
+
+- 后端：`e:/code/guo-hot-monitor`，Express + Prisma + SQLite，默认 `http://localhost:5000`
+- 前端：`frontend/`，Vite + React + Tailwind v4，默认 `http://localhost:5173`
+- 开发时前端通过 `vite.config.ts` 的 `proxy` 转发 `/api` 与 `/socket.io`，`App.tsx` 中 `API_BASE` 在 dev 下为 `/api`，Socket 使用当前页面 `origin`，避免写死端口导致联调失败。
+
+# MCP（Model Context Protocol）
+
+MCP 在 **Cursor 设置** 里配置，与业务代码仓库无强绑定。若教程要求接入高德等地图能力：
+
+1. 打开 **Cursor Settings → MCP**，添加对应 MCP Server（需该 Server 的安装说明与密钥，例如高德 Web 服务 Key）。
+2. 本仓库若存在 `mcps/` 目录，仅为 Cursor 对该工作区 MCP 工具描述符的缓存/索引，**不要**把真实 API Key 写进仓库；密钥放在 Cursor MCP 配置或本机环境变量中。
+
+# Agent Skills
+
+Skills 是 Cursor 侧的可复用说明文件（通常为用户目录下的 `SKILL.md`），用于约束 AI 如何改代码、测接口等：
+
+1. 需要项目专属技能时，在 Cursor 中通过 **创建 Skill** 向导生成，或参考官方 Skill 格式编写 `SKILL.md`。
+2. 与「热点监控」相关的技能可写明：先起后端 `npm run dev`，再起前端 `cd frontend && npm run dev`；环境变量见根目录 `.env`（`OPENROUTER_API_KEY` 等）。
+
+# 修改前端样式时
+
+- 全局字体与暗色底：`frontend/src/index.css`、`App.css` 中的 `bg-dashboard-mesh` / `bg-grid-faint`
+- 避免在组件里写死 `http://localhost:5000`，优先依赖上述 dev 代理与 `VITE_*` 变量

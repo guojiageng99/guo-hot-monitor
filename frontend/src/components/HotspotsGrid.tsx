@@ -18,17 +18,17 @@ interface HotspotsGridProps {
 }
 
 const HotspotsGrid: FC<HotspotsGridProps> = ({ hotspots }) => {
-  const getSourceColor = (source: string) => {
-    const colors: { [key: string]: string } = {
-      Twitter: "from-blue-600 to-blue-400",
-      Bing搜索: "from-cyan-600 to-cyan-400",
-      搜狗搜索: "from-orange-600 to-orange-400",
-      微博热搜: "from-red-600 to-red-400",
-      HackerNews: "from-yellow-600 to-yellow-400",
-      B站热门: "from-pink-600 to-pink-400",
-      Google搜索: "from-green-600 to-green-400",
+  const getSourceStyle = (source: string) => {
+    const map: { [key: string]: string } = {
+      Twitter: "bg-sky-500/15 text-sky-200 border-sky-500/25",
+      Bing搜索: "bg-cyan-500/15 text-cyan-200 border-cyan-500/25",
+      搜狗搜索: "bg-orange-500/15 text-orange-200 border-orange-500/25",
+      微博热搜: "bg-red-500/15 text-red-200 border-red-500/25",
+      HackerNews: "bg-amber-500/15 text-amber-200 border-amber-500/25",
+      B站热门: "bg-pink-500/15 text-pink-200 border-pink-500/25",
+      Google搜索: "bg-emerald-500/15 text-emerald-200 border-emerald-500/25",
     };
-    return colors[source] || "from-purple-600 to-purple-400";
+    return map[source] || "bg-violet-500/15 text-violet-200 border-violet-500/25";
   };
 
   const getTags = (tagStr?: string): string[] => {
@@ -58,28 +58,32 @@ const HotspotsGrid: FC<HotspotsGridProps> = ({ hotspots }) => {
       {hotspots.map((hotspot, index) => (
         <div
           key={hotspot.id}
-          className="group bg-gradient-to-br from-slate-800/60 to-slate-900/60 rounded-xl p-5 border border-slate-700/50 hover:border-purple-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 hover:from-slate-800 hover:to-slate-800/80 animate-in fade-in slide-in-from-bottom-2"
+          className="group relative overflow-hidden rounded-2xl p-5 border border-slate-700/40 bg-slate-900/50 backdrop-blur-sm shadow-lg shadow-black/20 hover:border-violet-500/40 hover:shadow-violet-950/20 transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
           style={{ animationDelay: `${index * 50}ms` }}
         >
+          <div
+            className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-violet-600/5 via-transparent to-fuchsia-600/5"
+            aria-hidden
+          />
           {/* 头部 */}
-          <div className="flex justify-between items-start mb-3">
-            <div className="flex-1">
-              <h3 className="text-base font-bold text-white line-clamp-2 group-hover:text-purple-300 transition-colors">
+          <div className="relative flex justify-between items-start gap-3 mb-3">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-semibold text-slate-50 line-clamp-2 group-hover:text-violet-200 transition-colors tracking-tight">
                 {hotspot.title}
               </h3>
-              <div className="flex gaps-2 mt-2">
+              <div className="flex flex-wrap gap-2 mt-2.5">
                 <span
-                  className={`text-xs font-semibold bg-gradient-to-r ${getSourceColor(
+                  className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-md border ${getSourceStyle(
                     hotspot.source,
-                  )} bg-clip-text text-transparent`}
+                  )}`}
                 >
-                  📌 {hotspot.source}
+                  {hotspot.source}
                 </span>
               </div>
             </div>
             {hotspot.verified && (
-              <div className="ml-2 px-2 py-1 bg-green-500/20 text-green-300 rounded text-xs font-medium flex items-center gap-1">
-                ✓ 已验证
+              <div className="shrink-0 px-2 py-1 rounded-md text-xs font-medium bg-emerald-500/15 text-emerald-200 border border-emerald-500/30">
+                已验证
               </div>
             )}
           </div>

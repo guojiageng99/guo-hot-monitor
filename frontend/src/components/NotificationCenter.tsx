@@ -17,48 +17,44 @@ interface NotificationCenterProps {
 
 const NotificationCenter: FC<NotificationCenterProps> = ({ notifications }) => {
   return (
-    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-purple-500/20 backdrop-blur">
-      <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-        <span className="text-2xl animate-bounce">🔔</span>
-        <span>最新通知</span>
-        {notifications.length > 0 && (
-          <span className="ml-auto text-sm px-2 py-1 bg-red-500/30 text-red-300 rounded-full font-medium">
-            {notifications.length}
+    <div className="space-y-3">
+      {notifications.length > 0 && (
+        <div className="flex justify-end">
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-200 border border-violet-500/20">
+            共 {notifications.length} 条
           </span>
-        )}
-      </h3>
+        </div>
+      )}
 
       {notifications.length === 0 ? (
-        <div className="text-center py-8 text-slate-400">
-          <p className="text-2xl mb-2">📭</p>
-          <p className="text-sm">暂无新通知</p>
+        <div className="text-center py-10 text-slate-500">
+          <p className="text-3xl mb-2 opacity-80">📭</p>
+          <p className="text-sm">暂无推送，匹配关键词的新热点会出现在这里</p>
         </div>
       ) : (
-        <div className="space-y-2 max-h-64 overflow-y-auto">
+        <ul className="space-y-2 max-h-64 overflow-y-auto pr-1">
           {notifications.map((notif, index) => (
-            <div
+            <li
               key={index}
-              className="p-3 bg-slate-700/40 rounded-lg border border-slate-600/20 hover:border-green-500/50 transition-all animate-in fade-in slide-in-from-right-2"
-              style={{ animationDelay: `${index * 100}ms` }}
+              className="p-3 rounded-xl bg-slate-800/50 border border-slate-600/25 hover:border-violet-500/35 transition-colors animate-in fade-in slide-in-from-right-2"
+              style={{ animationDelay: `${index * 80}ms` }}
             >
-              <div className="text-sm font-medium text-green-400 flex items-start gap-2">
-                <span className="text-lg mt-0.5">✨</span>
-                <div className="flex-1">
-                  <div className="line-clamp-1">{notif.hotspot?.title}</div>
-                  <div className="text-xs text-slate-400 mt-1">
-                    匹配关键词:{" "}
-                    <span className="text-purple-300">
-                      {notif.keyword?.keyword}
-                    </span>
-                  </div>
-                  <div className="text-xs text-slate-500 mt-1">
-                    来源: {notif.hotspot?.source}
-                  </div>
-                </div>
+              <p className="text-sm font-medium text-slate-100 line-clamp-2 leading-snug">
+                {notif.hotspot?.title}
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                <span>
+                  关键词{" "}
+                  <span className="text-violet-300 font-medium">
+                    {notif.keyword?.keyword}
+                  </span>
+                </span>
+                <span className="text-slate-600">·</span>
+                <span>{notif.hotspot?.source}</span>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
