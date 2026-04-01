@@ -1,4 +1,4 @@
-import React from "react";
+import type { FC } from "react";
 
 interface Notification {
   hotspot?: {
@@ -15,9 +15,7 @@ interface NotificationCenterProps {
   notifications: Notification[];
 }
 
-const NotificationCenter: React.FC<NotificationCenterProps> = ({
-  notifications,
-}) => {
+const NotificationCenter: FC<NotificationCenterProps> = ({ notifications }) => {
   return (
     <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-purple-500/20 backdrop-blur">
       <h3 className="text-lg font-bold mb-4 flex items-center gap-2">

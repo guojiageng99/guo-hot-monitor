@@ -1,4 +1,4 @@
-import React from "react";
+import type { FC } from "react";
 
 interface Hotspot {
   id: number;
@@ -17,7 +17,7 @@ interface HotspotsGridProps {
   hotspots: Hotspot[];
 }
 
-const HotspotsGrid: React.FC<HotspotsGridProps> = ({ hotspots }) => {
+const HotspotsGrid: FC<HotspotsGridProps> = ({ hotspots }) => {
   const getSourceColor = (source: string) => {
     const colors: { [key: string]: string } = {
       Twitter: "from-blue-600 to-blue-400",
@@ -31,10 +31,13 @@ const HotspotsGrid: React.FC<HotspotsGridProps> = ({ hotspots }) => {
     return colors[source] || "from-purple-600 to-purple-400";
   };
 
-  const getTags = (tagStr?: string) => {
+  const getTags = (tagStr?: string): string[] => {
     if (!tagStr) return [];
     try {
-      return JSON.parse(tagStr);
+      const parsed = JSON.parse(tagStr);
+      return Array.isArray(parsed)
+        ? parsed.filter((t) => typeof t === "string")
+        : [];
     } catch {
       return [];
     }
@@ -103,7 +106,7 @@ const HotspotsGrid: React.FC<HotspotsGridProps> = ({ hotspots }) => {
             <div className="mb-3 flex flex-wrap gap-2">
               {getTags(hotspot.aiTags)
                 .slice(0, 3)
-                .map((tag, i) => (
+                .map((tag: string, i: number) => (
                   <span
                     key={i}
                     className="text-xs px-2 py-1 bg-slate-700/60 text-slate-300 rounded-full border border-slate-600/50"

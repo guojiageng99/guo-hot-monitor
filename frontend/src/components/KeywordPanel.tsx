@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import type { FC } from "react";
+import { useState } from "react";
 
 interface Keyword {
   id: number;
@@ -15,7 +16,7 @@ interface KeywordPanelProps {
   loading: boolean;
 }
 
-const KeywordPanel: React.FC<KeywordPanelProps> = ({
+const KeywordPanel: FC<KeywordPanelProps> = ({
   keywords,
   onAdd,
   onDelete,
