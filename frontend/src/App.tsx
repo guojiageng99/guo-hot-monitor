@@ -127,11 +127,12 @@ function App() {
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 xl:gap-8">
           {/* 左侧面板 */}
-          <div className="lg:col-span-1">
-            <KeywordPanel
+          <div className="lg:col-span-2 xl:col-span-2">
+            <div className="sticky top-20">
+              <KeywordPanel
               keywords={keywords}
               onAdd={handleAddKeyword}
               onDelete={handleDeleteKeyword}
@@ -143,10 +144,11 @@ function App() {
               <NotificationCenter notifications={notifications.slice(0, 5)} />
             </div>
           </div>
+        </div>
 
           {/* 右侧热点展示 */}
-          <div className="lg:col-span-3">
-            <div className="mb-6 flex gap-2 flex-wrap">
+          <div className="lg:col-span-3 xl:col-span-3">
+            <div className="mb-6 flex flex-wrap gap-2 items-center">
               <button
                 onClick={() => setFilter("all")}
                 className={`px-4 py-2 rounded-lg transition-all font-medium ${

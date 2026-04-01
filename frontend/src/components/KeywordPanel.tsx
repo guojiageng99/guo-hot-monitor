@@ -39,9 +39,12 @@ const KeywordPanel: FC<KeywordPanelProps> = ({
   };
 
   return (
-    <div className="sticky top-20 space-y-6">
+    <div className="space-y-6">
       {/* 输入框 */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-purple-500/20 backdrop-blur">
+      <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 rounded-2xl p-6 border border-purple-400/20 backdrop-blur-xl shadow-[0_20px_40px_rgba(0,0,0,0.45)]">
+        <div className="mb-4 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-purple-100 bg-purple-500/20 rounded-lg inline-block">
+          侧边控制
+        </div>
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
           <span className="text-2xl">🔍</span>
           <span>监控关键词</span>
