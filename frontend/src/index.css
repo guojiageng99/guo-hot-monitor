@@ -24,7 +24,14 @@ body {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
-  @apply bg-[#121214] text-zinc-100 antialiased;
+  /* 贴近设计稿：深紫黑底 + 极弱顶部紫光 */
+  background-color: #0b0914;
+  background-image: radial-gradient(
+    ellipse 100% 60% at 50% -30%,
+    rgba(124, 77, 255, 0.12),
+    transparent 55%
+  );
+  @apply text-white antialiased;
 }
 
 .font-mono-nums {

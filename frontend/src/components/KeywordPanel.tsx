@@ -18,7 +18,7 @@ interface KeywordPanelProps {
 }
 
 const card =
-  "rounded-xl border border-white/[0.06] bg-[#1e1e22]";
+  "rounded-xl border border-white/[0.06] bg-[#16161e]";
 
 const KeywordPanel: FC<KeywordPanelProps> = ({
   keywords,
@@ -48,7 +48,7 @@ const KeywordPanel: FC<KeywordPanelProps> = ({
   return (
     <div className="space-y-6">
       <div className={`${card} p-6`}>
-        <div className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-violet-400/90">
+        <div className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-[#7c4dff]">
           监控配置
         </div>
         <h2 className="text-base font-semibold mb-4 text-white tracking-tight">
@@ -61,13 +61,13 @@ const KeywordPanel: FC<KeywordPanelProps> = ({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="输入要监控的关键词..."
-            className="w-full px-4 py-3 bg-[#121214] border border-white/[0.08] rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all"
+            className="w-full px-4 py-3 bg-[#0d0d12] border border-white/[0.08] rounded-xl text-white placeholder-[#6b7280] focus:outline-none focus:border-[#7c4dff]/50 focus:ring-2 focus:ring-[#7c4dff]/20 transition-all"
             disabled={isAdding}
           />
           <button
             type="submit"
             disabled={isAdding || loading}
-            className="w-full py-2.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-50 border border-white/10 shadow-lg shadow-violet-950/40"
+            className="w-full py-2.5 rounded-xl font-semibold text-sm text-white bg-[#7c4dff] hover:bg-[#6d3ef0] disabled:opacity-50 border border-[#8f5fff]/30 shadow-[0_4px_20px_rgba(124,77,255,0.25)]"
           >
             {isAdding ? "添加中..." : "添加关键词"}
           </button>
@@ -75,12 +75,12 @@ const KeywordPanel: FC<KeywordPanelProps> = ({
       </div>
 
       <div className={`${card} p-5 max-h-[28rem] overflow-y-auto`}>
-        <h3 className="text-sm font-semibold text-zinc-200 mb-4">
+        <h3 className="text-sm font-semibold text-white mb-4">
           已添加 ({keywords.length})
         </h3>
 
         {keywords.length === 0 ? (
-          <div className="text-center py-8 text-zinc-500">
+          <div className="text-center py-8 text-[#9ca3af]">
             <p className="text-2xl mb-2">📭</p>
             <p className="text-sm">还没有监控任何关键词</p>
           </div>
@@ -93,13 +93,13 @@ const KeywordPanel: FC<KeywordPanelProps> = ({
                   key={kw.id}
                   className={`rounded-lg p-3 flex flex-wrap items-center justify-between gap-2 border transition-colors ${
                     isPaused
-                      ? "bg-[#121214]/80 border-white/[0.04] opacity-85"
-                      : "bg-[#252528] border-white/[0.06] hover:border-white/10"
+                      ? "bg-[#0d0d12]/90 border-white/[0.04] opacity-85"
+                      : "bg-[#1a1a22] border-white/[0.06] hover:border-[#7c4dff]/20"
                   }`}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-violet-200 truncate">
+                      <span className="font-medium text-[#c4b5fd] truncate">
                         {kw.keyword}
                       </span>
                       {isPaused && (
@@ -108,7 +108,7 @@ const KeywordPanel: FC<KeywordPanelProps> = ({
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-zinc-500 mt-1">
+                    <div className="text-xs text-[#9ca3af] mt-1">
                       {new Date(kw.createdAt).toLocaleDateString("zh-CN")}
                     </div>
                   </div>
@@ -142,16 +142,16 @@ const KeywordPanel: FC<KeywordPanelProps> = ({
 
       <div className="grid grid-cols-2 gap-3">
         <div className={`${card} p-4 text-center`}>
-          <div className="text-2xl font-semibold font-mono-nums text-blue-400 tabular-nums">
+          <div className="text-2xl font-semibold font-mono-nums text-[#7c4dff] tabular-nums">
             {activeCount}
           </div>
-          <div className="text-[11px] text-zinc-500 mt-1">监控中</div>
+          <div className="text-[11px] text-[#9ca3af] mt-1">监控中</div>
         </div>
         <div className={`${card} p-4 text-center`}>
-          <div className="text-2xl font-semibold font-mono-nums text-zinc-400 tabular-nums">
+          <div className="text-2xl font-semibold font-mono-nums text-[#9ca3af] tabular-nums">
             {keywords.length - activeCount}
           </div>
-          <div className="text-[11px] text-zinc-500 mt-1">已暂停</div>
+          <div className="text-[11px] text-[#9ca3af] mt-1">已暂停</div>
         </div>
       </div>
     </div>

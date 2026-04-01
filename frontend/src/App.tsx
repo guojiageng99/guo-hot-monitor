@@ -31,6 +31,45 @@ function isUrgentHotspot(h: {
   );
 }
 
+function KpiCards({
+  total,
+  today,
+  urgent,
+}: {
+  total: number;
+  today: number;
+  urgent: number;
+}) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="rounded-xl border border-white/[0.06] bg-[#16161e] px-5 py-4 shadow-sm">
+        <p className="text-xs font-medium text-[#9ca3af] uppercase tracking-wider mb-1">
+          总热点
+        </p>
+        <p className="text-3xl font-bold font-mono-nums tabular-nums text-[#a855f7]">
+          {total}
+        </p>
+      </div>
+      <div className="rounded-xl border border-white/[0.06] bg-[#16161e] px-5 py-4 shadow-sm">
+        <p className="text-xs font-medium text-[#9ca3af] uppercase tracking-wider mb-1">
+          今日新增
+        </p>
+        <p className="text-3xl font-bold font-mono-nums tabular-nums text-[#22d3ee]">
+          {today}
+        </p>
+      </div>
+      <div className="rounded-xl border border-white/[0.06] bg-[#16161e] px-5 py-4 shadow-sm">
+        <p className="text-xs font-medium text-[#9ca3af] uppercase tracking-wider mb-1">
+          紧急热点
+        </p>
+        <p className="text-3xl font-bold font-mono-nums tabular-nums text-[#f97316]">
+          {urgent}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
   const [keywords, setKeywords] = useState<any[]>([]);
@@ -196,211 +235,255 @@ function App() {
     { id: "search", label: "搜索" },
   ];
 
-  /** 铺满视口宽度，仅保留左右内边距（不再限制 max-width，避免宽屏右侧大块留白） */
-  const layoutShell =
-    "w-full max-w-none box-border px-4 sm:px-5 md:px-8 lg:px-10 xl:px-12";
+  const markAllRead = () => {
+    setNotifications([]);
+  };
+
+  const padX = "px-4 sm:px-6 lg:px-8 xl:px-10";
 
   return (
-    <div className="min-h-screen w-full bg-[#121214] text-zinc-100">
-      <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#121214]/90 backdrop-blur-md">
+    <div className="min-h-screen w-full flex flex-col bg-transparent text-white">
+      <header className="shrink-0 z-50 border-b border-white/[0.06] bg-[#0b0914]/90 backdrop-blur-md">
         <div
-          className={`${layoutShell} pt-4 pb-2 flex items-start justify-between gap-4`}
+          className={`${padX} pt-4 pb-5 flex flex-wrap items-center justify-between gap-4`}
         >
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-2xl leading-none shrink-0" aria-hidden>
+            <div
+              className="h-11 w-11 shrink-0 rounded-xl bg-[#7c4dff]/15 ring-1 ring-[#7c4dff]/35 flex items-center justify-center text-xl shadow-[0_0_24px_rgba(124,77,255,0.15)]"
+              aria-hidden
+            >
               🔥
-            </span>
+            </div>
             <div className="min-w-0">
               <h1 className="text-xl font-bold text-white tracking-tight">
                 热点监控
               </h1>
-              <p className="text-sm text-zinc-500 mt-0.5">AI 实时热点追踪</p>
+              <p
+                className={`text-sm mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 ${isConnected ? "text-emerald-400" : "text-[#9ca3af]"}`}
+                title={isConnected ? "实时通道已连接" : "未连接"}
+              >
+                <span>AI 实时热点追踪，监控关键词</span>
+                <span
+                  className={`font-semibold font-mono-nums tabular-nums ${isConnected ? "text-emerald-200" : "text-[#22d3ee]"}`}
+                >
+                  {activeKeywordCount}
+                </span>
+                <span className={isConnected ? "text-emerald-400/70" : "text-[#9ca3af]"}>
+                  ·
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${isConnected ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" : "bg-zinc-600"}`}
+                  />
+                  {isConnected ? "已连接" : "离线"}
+                </span>
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <span
-              className={`w-2 h-2 rounded-full shrink-0 ${isConnected ? "bg-emerald-500" : "bg-zinc-600"}`}
-              title={isConnected ? "已连接" : "未连接"}
-            />
             <button
               type="button"
               onClick={() => void handleCollectNow()}
               disabled={collecting || refreshing || loading}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-45 shadow-lg shadow-violet-950/50 border border-white/10 transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#7c4dff] hover:bg-[#6d3ef0] disabled:opacity-45 shadow-[0_4px_24px_rgba(124,77,255,0.35)] border border-[#8f5fff]/30 transition-colors"
             >
-              <IconRefresh className="opacity-90" />
+              <IconRefresh className="opacity-95 w-[18px] h-[18px]" />
               {collecting ? "检查中…" : "立即检查"}
             </button>
             <button
               type="button"
-              onClick={() => void handleRefresh()}
-              disabled={refreshing || collecting || loading}
-              className="inline-flex items-center px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-400 border border-white/[0.1] bg-[#1e1e22] hover:text-zinc-200 hover:border-white/15 disabled:opacity-45 transition-colors shrink-0"
-            >
-              <span className="sm:hidden">{refreshing ? "…" : "刷新"}</span>
-              <span className="hidden sm:inline">
-                {refreshing ? "刷新中…" : "刷新列表"}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setNotifOpen(true)}
-              className="relative p-2.5 rounded-xl border border-white/[0.08] bg-[#1e1e22] text-zinc-300 hover:bg-[#252528] hover:text-white transition-colors"
+              onClick={() => setNotifOpen((o) => !o)}
+              aria-expanded={notifOpen}
+              className={`relative p-2.5 rounded-xl border bg-[#16161e] transition-colors ${
+                notifOpen
+                  ? "border-[#7c4dff]/45 text-white shadow-[0_0_20px_rgba(124,77,255,0.2)]"
+                  : "border-white/[0.08] text-[#9ca3af] hover:text-white hover:border-[#7c4dff]/30"
+              }`}
               aria-label="通知"
             >
-              <IconBell />
+              <IconBell className="w-[22px] h-[22px]" />
               {notifications.length > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1 flex items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white shadow-lg">
                   {notifBadge}
                 </span>
               )}
             </button>
           </div>
         </div>
-
-        <nav className={`${layoutShell} flex gap-1 pb-3 pt-1`} role="tablist">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === t.id}
-              onClick={() => setActiveTab(t.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === t.id
-                  ? "bg-violet-600/90 text-white shadow-md shadow-violet-950/40"
-                  : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.04]"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </nav>
       </header>
 
-      <main className={`${layoutShell} py-6 pb-16`}>
-        {activeTab === "dashboard" && (
-          <>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-              {[
-                { label: "总热点", value: hotspots.length, color: "text-blue-400" },
-                { label: "今日新增", value: todayCount, color: "text-blue-400" },
-                { label: "紧急热点", value: urgentCount, color: "text-red-400" },
-                {
-                  label: "监控关键词",
-                  value: activeKeywordCount,
-                  color: "text-emerald-400",
-                },
-              ].map((card) => (
-                <div
-                  key={card.label}
-                  className="rounded-xl border border-white/[0.06] bg-[#1e1e22] px-4 py-3"
-                >
-                  <p className="text-xs text-zinc-500 mb-1">{card.label}</p>
-                  <p
-                    className={`text-2xl font-bold font-mono-nums tabular-nums ${card.color}`}
-                  >
-                    {card.value}
-                  </p>
-                </div>
-              ))}
-            </div>
+      <div className="flex flex-1 flex-col min-h-0 min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
+          <nav
+            className={`shrink-0 ${padX} flex gap-2 pt-4 pb-3 border-b border-white/[0.06] bg-[#0b0914]/80`}
+            role="tablist"
+          >
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === t.id}
+                onClick={() => setActiveTab(t.id)}
+                className={`px-4 py-2.5 text-sm rounded-lg transition-all ${
+                  activeTab === t.id
+                    ? "font-semibold text-white bg-[#7c4dff]/22 ring-2 ring-[#7c4dff]/55 shadow-[0_0_28px_rgba(124,77,255,0.22)]"
+                    : "font-medium text-[#6b7280] hover:text-zinc-200 hover:bg-white/[0.05]"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
 
-            <section>
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-white mb-4">
-                <span aria-hidden>🔥</span>
-                最新热点
-              </h2>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {(
-                  [
-                    { id: "all" as const, label: "全部" },
-                    { id: "verified" as const, label: "已验证" },
-                    { id: "urgent" as const, label: "紧急" },
-                  ] as const
-                ).map(({ id, label }) => (
+          <main className={`flex-1 min-h-0 overflow-y-auto ${padX} py-6 pb-10`}>
+            {activeTab === "dashboard" && (
+              <>
+                <KpiCards
+                  total={hotspots.length}
+                  today={todayCount}
+                  urgent={urgentCount}
+                />
+
+                <section>
+                  <h2 className="flex items-center gap-2 text-lg font-semibold text-white mb-4">
+                    <span aria-hidden className="text-xl">
+                      🔥
+                    </span>
+                    最新热点
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-2 mb-5">
+                    {(
+                      [
+                        { id: "all" as const, label: "全部" },
+                        { id: "verified" as const, label: "已验证" },
+                        { id: "urgent" as const, label: "紧急" },
+                      ] as const
+                    ).map(({ id, label }) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setFilter(id)}
+                        className={`px-3.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                          filter === id
+                            ? id === "urgent"
+                              ? "bg-orange-500/15 border-orange-400/35 text-orange-200"
+                              : "bg-[#7c4dff]/20 border-[#7c4dff]/40 text-[#c4b5fd]"
+                            : "border-transparent bg-[#16161e] text-[#9ca3af] hover:text-white"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => void handleRefresh()}
+                      disabled={refreshing || collecting}
+                      className="ml-auto text-xs text-[#9ca3af] hover:text-[#00e5ff] disabled:opacity-40"
+                    >
+                      {refreshing ? "刷新中…" : "刷新列表"}
+                    </button>
+                  </div>
+                  <LatestHotspotsFeed hotspots={filteredHotspots} />
+                </section>
+              </>
+            )}
+
+            {activeTab === "keywords" && (
+              <div className="max-w-3xl">
+                <KeywordPanel
+                  keywords={keywords}
+                  onAdd={handleAddKeyword}
+                  onDelete={handleDeleteKeyword}
+                  onToggleStatus={handleToggleKeywordStatus}
+                  loading={loading}
+                />
+                <p className="mt-6 text-center">
                   <button
-                    key={id}
                     type="button"
-                    onClick={() => setFilter(id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                      filter === id
-                        ? id === "urgent"
-                          ? "bg-red-500/15 border-red-500/35 text-red-200"
-                          : "bg-violet-500/20 border-violet-500/35 text-violet-200"
-                        : "border-transparent bg-[#1e1e22] text-zinc-500 hover:text-zinc-300"
-                    }`}
+                    onClick={() => void handleRefresh()}
+                    disabled={refreshing}
+                    className="text-sm text-[#7c4dff] hover:text-[#9f7dff] disabled:opacity-40"
                   >
-                    {label}
+                    {refreshing ? "刷新中…" : "刷新列表"}
                   </button>
-                ))}
+                </p>
               </div>
-              <LatestHotspotsFeed hotspots={filteredHotspots} />
-            </section>
-          </>
-        )}
+            )}
 
-        {activeTab === "keywords" && (
-          <KeywordPanel
-            keywords={keywords}
-            onAdd={handleAddKeyword}
-            onDelete={handleDeleteKeyword}
-            onToggleStatus={handleToggleKeywordStatus}
-            loading={loading}
-          />
-        )}
-
-        {activeTab === "search" && (
-          <section>
-            <label className="block text-sm font-medium text-zinc-400 mb-2">
-              搜索热点
-            </label>
-            <input
-              type="search"
-              value={searchDraft}
-              onChange={(e) => setSearchDraft(e.target.value)}
-              placeholder="输入关键词，搜索标题或正文…"
-              className="w-full px-4 py-3 rounded-xl bg-[#1e1e22] border border-white/[0.08] text-white placeholder-zinc-600 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/35 focus:border-violet-500/40 mb-6"
-              autoComplete="off"
-            />
-            <div className="flex flex-wrap gap-2 mb-4">
-              {(
-                [
-                  { id: "all" as const, label: "全部" },
-                  { id: "verified" as const, label: "已验证" },
-                  { id: "urgent" as const, label: "紧急" },
-                ] as const
-              ).map(({ id, label }) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setFilter(id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                    filter === id
-                      ? id === "urgent"
-                        ? "bg-red-500/15 border-red-500/35 text-red-200"
-                        : "bg-violet-500/20 border-violet-500/35 text-violet-200"
-                      : "border-transparent bg-[#1e1e22] text-zinc-500 hover:text-zinc-300"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <LatestHotspotsFeed hotspots={filteredHotspots} />
-          </section>
-        )}
-      </main>
+            {activeTab === "search" && (
+              <>
+                <KpiCards
+                  total={hotspots.length}
+                  today={todayCount}
+                  urgent={urgentCount}
+                />
+                <section>
+                  <h2 className="flex items-center gap-2 text-lg font-semibold text-white mb-4">
+                    <span aria-hidden className="text-xl">
+                      🔥
+                    </span>
+                    最新热点
+                  </h2>
+                  <label className="block text-sm font-medium text-[#9ca3af] mb-2">
+                    搜索热点
+                  </label>
+                  <input
+                    type="search"
+                    value={searchDraft}
+                    onChange={(e) => setSearchDraft(e.target.value)}
+                    placeholder="输入关键词，搜索标题或正文…"
+                    className="w-full px-4 py-3 rounded-xl bg-[#16161e] border border-white/[0.08] text-white placeholder-[#6b7280] text-sm focus:outline-none focus:ring-2 focus:ring-[#7c4dff]/40 focus:border-[#7c4dff]/50 mb-5"
+                    autoComplete="off"
+                  />
+                  <div className="flex flex-wrap items-center gap-2 mb-5">
+                    {(
+                      [
+                        { id: "all" as const, label: "全部" },
+                        { id: "verified" as const, label: "已验证" },
+                        { id: "urgent" as const, label: "紧急" },
+                      ] as const
+                    ).map(({ id, label }) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setFilter(id)}
+                        className={`px-3.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                          filter === id
+                            ? id === "urgent"
+                              ? "bg-orange-500/15 border-orange-400/35 text-orange-200"
+                              : "bg-[#7c4dff]/20 border-[#7c4dff]/40 text-[#c4b5fd]"
+                            : "border-transparent bg-[#16161e] text-[#9ca3af] hover:text-white"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => void handleRefresh()}
+                      disabled={refreshing || collecting}
+                      className="ml-auto text-xs text-[#9ca3af] hover:text-[#00e5ff] disabled:opacity-40"
+                    >
+                      {refreshing ? "刷新中…" : "刷新列表"}
+                    </button>
+                  </div>
+                  <LatestHotspotsFeed hotspots={filteredHotspots} />
+                </section>
+              </>
+            )}
+          </main>
+        </div>
+      </div>
 
       <NotificationDrawer
         open={notifOpen}
         notifications={notifications}
         onClose={() => setNotifOpen(false)}
-        onMarkAllRead={() => {
-          setNotifications([]);
-          setNotifOpen(false);
-        }}
+        onMarkAllRead={markAllRead}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
       />
     </div>
   );

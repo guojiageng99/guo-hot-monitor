@@ -119,17 +119,15 @@ const LatestHotspotsFeed: FC<LatestHotspotsFeedProps> = ({ hotspots }) => {
 
   if (hotspots.length === 0) {
     return (
-      <div className="rounded-xl border border-white/[0.06] bg-[#1e1e22] py-16 text-center">
+      <div className="rounded-xl border border-white/[0.06] bg-[#16161e] py-16 text-center">
         <p className="text-4xl mb-3 opacity-40">🔥</p>
-        <p className="text-zinc-400 text-sm">暂无热点，点击「立即检查」或等待定时采集</p>
+        <p className="text-[#9ca3af] text-sm">暂无热点，点击「立即检查」或等待定时采集</p>
       </div>
     );
   }
 
   return (
-    <div
-      className="grid gap-4 w-full [grid-template-columns:repeat(auto-fill,minmax(min(100%,18rem),1fr))]"
-    >
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full">
       {hotspots.map((hotspot, index) => {
         const p = priorityFromImportance(
           hotspot.importance,
@@ -142,7 +140,7 @@ const LatestHotspotsFeed: FC<LatestHotspotsFeedProps> = ({ hotspots }) => {
         return (
           <article
             key={hotspot.id}
-            className="rounded-xl border border-white/[0.06] bg-[#1e1e22] p-5 shadow-sm transition-colors hover:border-violet-500/20 animate-in fade-in slide-in-from-bottom-2"
+            className="rounded-xl border border-white/[0.06] bg-[#16161e] p-5 shadow-sm transition-colors hover:border-[#7c4dff]/25 animate-in fade-in slide-in-from-bottom-2"
             style={{ animationDelay: `${index * 40}ms` }}
           >
             <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -152,13 +150,13 @@ const LatestHotspotsFeed: FC<LatestHotspotsFeedProps> = ({ hotspots }) => {
                 {p.showFire && <span aria-hidden>🔥</span>}
                 {p.label}
               </span>
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-md border border-sky-500/25 bg-sky-500/10 text-sky-200">
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-md border border-[#00e5ff]/20 bg-[#00e5ff]/10 text-[#7dd3fc]">
                 {isTwitterSource(hotspot.source) && (
-                  <IconTwitter className="text-sky-400 shrink-0" />
+                  <IconTwitter className="text-[#38bdf8] shrink-0" />
                 )}
                 {sourceKey(hotspot.source)}
               </span>
-              <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-md border border-violet-500/30 bg-violet-500/15 text-violet-200 max-w-[200px] truncate">
+              <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-md border border-[#7c4dff]/35 bg-[#7c4dff]/12 text-[#c4b5fd] max-w-[200px] truncate">
                 {topicTag}
               </span>
             </div>
@@ -166,20 +164,20 @@ const LatestHotspotsFeed: FC<LatestHotspotsFeedProps> = ({ hotspots }) => {
             <h3 className="text-lg font-semibold text-white leading-snug tracking-tight mb-2 line-clamp-2">
               {hotspot.title}
             </h3>
-            <p className="text-sm text-zinc-400 leading-relaxed line-clamp-3 mb-4">
+            <p className="text-sm text-[#9ca3af] leading-relaxed line-clamp-3 mb-4">
               {desc}
             </p>
 
             <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/[0.06]">
-              <span className="text-xs text-zinc-500">
-                相关性（相对监控词）{" "}
-                <span className="text-zinc-300 font-medium font-mono-nums">
+              <span className="text-xs text-[#9ca3af]">
+                相关性{" "}
+                <span className="text-[#00e5ff] font-medium font-mono-nums">
                   {Math.round(hotspot.relevanceScore)}%
                 </span>
               </span>
-              <span className="inline-flex items-center gap-1.5 text-xs text-zinc-500">
-                <IconEye className="text-zinc-500" />
-                <span className="font-mono-nums text-zinc-400">{viewHint(hotspot)}</span>
+              <span className="inline-flex items-center gap-1.5 text-xs text-[#9ca3af]">
+                <IconEye className="text-[#6b7280]" />
+                <span className="font-mono-nums text-[#d1d5db]">{viewHint(hotspot)}</span>
               </span>
             </div>
 
@@ -188,7 +186,7 @@ const LatestHotspotsFeed: FC<LatestHotspotsFeedProps> = ({ hotspots }) => {
                 href={hotspot.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-block text-xs font-medium text-violet-400 hover:text-violet-300"
+                className="mt-3 inline-block text-xs font-medium text-[#7c4dff] hover:text-[#a78bfa]"
               >
                 查看原文 →
               </a>
