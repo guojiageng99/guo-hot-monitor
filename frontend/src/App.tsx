@@ -20,6 +20,17 @@ const SOCKET_URL =
 
 type TabId = "dashboard" | "keywords" | "search";
 
+function isUrgentHotspot(h: {
+  importance?: string;
+  relevanceScore?: number;
+}): boolean {
+  return (
+    h.importance === "urgent" ||
+    h.importance === "high" ||
+    (h.relevanceScore ?? 0) >= 80
+  );
+}
+
 function App() {
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
   const [keywords, setKeywords] = useState<any[]>([]);
@@ -163,14 +174,14 @@ function App() {
 
   const today = new Date().toISOString().slice(0, 10);
   const todayCount = hotspots.filter((h) => h.createdAt?.slice(0, 10) === today).length;
-  const urgentCount = hotspots.filter((h) => h.relevanceScore >= 80).length;
+  const urgentCount = hotspots.filter(isUrgentHotspot).length;
 
   const filteredHotspots = useMemo(
     () =>
       hotspots.filter((h) => {
         if (filter === "all") return true;
         if (filter === "verified") return h.verified;
-        if (filter === "urgent") return h.relevanceScore >= 80;
+        if (filter === "urgent") return isUrgentHotspot(h);
         return true;
       }),
     [hotspots, filter],

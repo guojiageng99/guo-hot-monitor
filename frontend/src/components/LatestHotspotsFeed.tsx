@@ -11,6 +11,8 @@ interface Hotspot {
   aiSummary?: string;
   aiTags?: string;
   relevanceScore: number;
+  /** urgent | high | medium | low */
+  importance?: string;
   createdAt: string;
 }
 
@@ -18,12 +20,17 @@ interface LatestHotspotsFeedProps {
   hotspots: Hotspot[];
 }
 
-function priorityFromScore(score: number): { label: string; className: string } {
+function priorityFromScore(score: number): {
+  label: string;
+  className: string;
+  showFire?: boolean;
+} {
   if (score >= 80) {
     return {
       label: "HIGH",
       className:
         "bg-orange-500/20 text-orange-200 border-orange-400/35",
+      showFire: true,
     };
   }
   if (score >= 50) {
@@ -37,6 +44,44 @@ function priorityFromScore(score: number): { label: string; className: string } 
     label: "LOW",
     className: "bg-zinc-600/35 text-zinc-300 border-zinc-500/30",
   };
+}
+
+/** 教程：重要性分级 urgent / high / medium / low */
+function priorityFromImportance(
+  importance: string | undefined,
+  score: number,
+): { label: string; className: string; showFire?: boolean } {
+  const i = (importance || "").toLowerCase().trim();
+  if (i === "urgent") {
+    return {
+      label: "URGENT",
+      className:
+        "bg-red-600/25 text-red-100 border-red-400/45",
+      showFire: true,
+    };
+  }
+  if (i === "high") {
+    return {
+      label: "HIGH",
+      className:
+        "bg-orange-500/20 text-orange-200 border-orange-400/35",
+      showFire: true,
+    };
+  }
+  if (i === "medium") {
+    return {
+      label: "MEDIUM",
+      className:
+        "bg-amber-400/20 text-amber-100 border-amber-400/35",
+    };
+  }
+  if (i === "low") {
+    return {
+      label: "LOW",
+      className: "bg-zinc-600/35 text-zinc-300 border-zinc-500/30",
+    };
+  }
+  return priorityFromScore(score);
 }
 
 function sourceKey(source: string): string {
@@ -86,7 +131,10 @@ const LatestHotspotsFeed: FC<LatestHotspotsFeedProps> = ({ hotspots }) => {
       className="grid gap-4 w-full [grid-template-columns:repeat(auto-fill,minmax(min(100%,18rem),1fr))]"
     >
       {hotspots.map((hotspot, index) => {
-        const p = priorityFromScore(hotspot.relevanceScore);
+        const p = priorityFromImportance(
+          hotspot.importance,
+          hotspot.relevanceScore,
+        );
         const tags = getTags(hotspot.aiTags);
         const topicTag = tags[0] ?? "AI 热点";
         const desc = (hotspot.aiSummary || hotspot.content || "").trim();
@@ -101,7 +149,7 @@ const LatestHotspotsFeed: FC<LatestHotspotsFeedProps> = ({ hotspots }) => {
               <span
                 className={`inline-flex items-center gap-1 text-[11px] font-bold tracking-wide px-2 py-0.5 rounded-md border uppercase ${p.className}`}
               >
-                {p.label === "HIGH" && <span aria-hidden>🔥</span>}
+                {p.showFire && <span aria-hidden>🔥</span>}
                 {p.label}
               </span>
               <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-md border border-sky-500/25 bg-sky-500/10 text-sky-200">
@@ -124,7 +172,7 @@ const LatestHotspotsFeed: FC<LatestHotspotsFeedProps> = ({ hotspots }) => {
 
             <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/[0.06]">
               <span className="text-xs text-zinc-500">
-                相关性{" "}
+                相关性（相对监控词）{" "}
                 <span className="text-zinc-300 font-medium font-mono-nums">
                   {Math.round(hotspot.relevanceScore)}%
                 </span>

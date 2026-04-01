@@ -115,7 +115,7 @@ router.put("/:id", async (req: Request, res: Response) => {
     if (Number.isNaN(numId)) {
       return res.status(404).json({ error: "热点不存在" });
     }
-    const { verified, aiSummary, aiTags, relevanceScore } = req.body;
+    const { verified, aiSummary, aiTags, relevanceScore, importance } = req.body;
 
     const updated = await prisma.hotspot.update({
       where: { id: numId },
@@ -124,6 +124,10 @@ router.put("/:id", async (req: Request, res: Response) => {
         ...(aiSummary && { aiSummary }),
         ...(aiTags && { aiTags: JSON.stringify(aiTags) }),
         ...(relevanceScore !== undefined && { relevanceScore }),
+        ...(typeof importance === "string" &&
+          ["urgent", "high", "medium", "low"].includes(importance) && {
+            importance,
+          }),
       },
     });
 

@@ -35,8 +35,9 @@ model Hotspot {
   content         String
   source          String    // 信息源名称 (Twitter, Bing, Google等)
   sourceUrl       String?   // 原始链接
-  relevanceScore  Float     @default(0) // 0-100分
-  verified        Boolean   @default(false) // AI是否验证过
+  relevanceScore  Float     @default(0) // 0-100，相对监控关键词的相关性
+  importance      String    @default("medium") // urgent | high | medium | low
+  verified        Boolean   @default(false) // AI 真实性判断（是否真实可信）
   aiSummary       String?   // AI生成的摘要
   aiTags          String?   // AI识别的标签 JSON
   createdAt       DateTime  @default(now())

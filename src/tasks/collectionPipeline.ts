@@ -13,8 +13,7 @@ export type CollectionPipelineResult = {
 let pipelineRunning = false;
 
 /**
- * 执行一次完整采集：多源抓取 → 入库 → AI 验证/打标 → 关键词匹配 → Socket 推送。
- * 与定时任务共用互斥锁，避免并发执行。
+ * 采集 → 入库 → AI 审核（真实性/相对关键词相关性/重要性/摘要）→ 按 matchedKeywords 通知
  */
 export async function runCollectionPipeline(): Promise<CollectionPipelineResult> {
   if (pipelineRunning) {
@@ -40,6 +39,10 @@ export async function runCollectionPipeline(): Promise<CollectionPipelineResult>
     const keywords = await prisma.keyword.findMany({
       where: { status: "active" },
     });
+    const keywordStrings = keywords.map((k) => k.keyword);
+    const keywordByText = new Map(
+      keywords.map((k) => [k.keyword.trim().toLowerCase(), k] as const),
+    );
 
     for (const hotspot of hotspots) {
       if (hotspot.id == null) {
@@ -49,6 +52,7 @@ export async function runCollectionPipeline(): Promise<CollectionPipelineResult>
         const verified = await aiVerificationService.verifyAndTag(
           hotspot.title,
           hotspot.content,
+          keywordStrings,
         );
 
         const savedHotspot = await prisma.hotspot.update({
@@ -58,19 +62,44 @@ export async function runCollectionPipeline(): Promise<CollectionPipelineResult>
             aiSummary: verified.summary,
             aiTags: JSON.stringify(verified.tags),
             relevanceScore: verified.relevanceScore,
+            importance: verified.importance,
           },
         });
 
         processed += 1;
 
-        for (const keyword of keywords) {
-          const matches = await aiVerificationService.matchKeyword(
-            hotspot.title,
-            hotspot.content,
-            keyword.keyword,
-          );
+        const notifiedIds = new Set<number>();
 
-          if (matches) {
+        for (const mk of verified.matchedKeywords) {
+          const row = keywordByText.get(mk.trim().toLowerCase());
+          if (!row || notifiedIds.has(row.id)) continue;
+          notifiedIds.add(row.id);
+
+          const notification = await prisma.notification.create({
+            data: {
+              keywordId: row.id,
+              hotspotId: savedHotspot.id,
+            },
+          });
+
+          matchedNotifications += 1;
+
+          io.emit("new-hotspot", {
+            hotspot: savedHotspot,
+            keyword: { keyword: row.keyword },
+            notification,
+          });
+        }
+
+        if (notifiedIds.size === 0 && keywords.length > 0) {
+          for (const keyword of keywords) {
+            const hit = await aiVerificationService.matchKeyword(
+              hotspot.title,
+              hotspot.content,
+              keyword.keyword,
+            );
+            if (!hit) continue;
+
             const notification = await prisma.notification.create({
               data: {
                 keywordId: keyword.id,
