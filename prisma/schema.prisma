@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./prisma/dev.db"
+}
+
+// 关键词表
+model Keyword {
+  id        Int       @id @default(autoincrement())
+  keyword   String    @unique
+  description String?
+  categories String? // JSON字符串，存储分类数组
+  status    String    @default("active") // active, paused, deleted
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  notifications Notification[]
+  hotspotKeywords HotspotKeyword[]
+  
+  @@map("keywords")
+}
+
+// 热点表
+model Hotspot {
+  id              Int       @id @default(autoincrement())
+  title           String
+  content         String
+  source          String    // 信息源名称 (Twitter, Bing, Google等)
+  sourceUrl       String?   // 原始链接
+  relevanceScore  Float     @default(0) // 0-100分
+  verified        Boolean   @default(false) // AI是否验证过
+  aiSummary       String?   // AI生成的摘要
+  aiTags          String?   // AI识别的标签 JSON
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  notifications Notification[]
+  hotspotKeywords HotspotKeyword[]
+  
+  @@map("hotspots")
+}
+
+// 热点-关键词多对多关联
+model HotspotKeyword {
+  id        Int       @id @default(autoincrement())
+  keywordId Int
+  hotspotId Int
+  createdAt DateTime  @default(now())
+  
+  keyword Keyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  hotspot Hotspot @relation(fields: [hotspotId], references: [id], onDelete: Cascade)
+  
+  @@unique([keywordId, hotspotId])
+  @@map("hotspot_keywords")
+}
+
+// 通知表
+model Notification {
+  id        Int       @id @default(autoincrement())
+  keywordId Int
+  hotspotId Int
+  sentAt    DateTime  @default(now())
+  status    String    @default("sent") // sent, read, deleted
+  
+  keyword Keyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  hotspot Hotspot @relation(fields: [hotspotId], references: [id], onDelete: Cascade)
+  
+  @@map("notifications")
+}
+
+// 信息源配置表
+model Source {
+  id              Int       @id @default(autoincrement())
+  name            String    @unique // Twitter, Bing, Google等
+  type            String    // api, crawler, rss
+  enabled         Boolean   @default(true)
+  lastCheckTime   DateTime?
+  checkInterval   Int       @default(30) // 分钟
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@map("sources")
+}
